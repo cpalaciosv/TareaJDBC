@@ -10,4 +10,6 @@ public interface EmployeeDAO {
     List<Employee> listDepartmentEmployees(String departmentName);
 
     Employee getEmployee(String nif);
+
+    boolean insert(Employee employee);
 }

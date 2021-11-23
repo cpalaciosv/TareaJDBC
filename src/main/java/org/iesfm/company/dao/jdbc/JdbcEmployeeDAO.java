@@ -2,6 +2,7 @@ package org.iesfm.company.dao.jdbc;
 
 import org.iesfm.company.Employee;
 import org.iesfm.company.dao.EmployeeDAO;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
@@ -24,6 +25,13 @@ public class JdbcEmployeeDAO implements EmployeeDAO {
 
     private final static String SELECT_EMPLOYEE_ROLES =
             "SELECT * FROM Role WHERE nif=:nif";
+
+    private final static String INSERT_EMPLOYEE =
+            "INSERT INTO Employee(nif, name, surname, department_name) VALUES(:nif, :name, :surname, :departmentName)";
+
+    private final static String INSERT_ROLE =
+            "INSERT INTO Role(nif, role) VALUES(:nif, :role)";
+
 
     private NamedParameterJdbcTemplate jdbc;
 
@@ -95,6 +103,27 @@ public class JdbcEmployeeDAO implements EmployeeDAO {
             );
         } catch (EmptyResultDataAccessException e) {
             return null;
+        }
+    }
+
+    @Override
+    public boolean insert(Employee employee) {
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("nif", employee.getNif());
+            params.put("name", employee.getName());
+            params.put("surname", employee.getSurname());
+            params.put("departmentName", employee.getDepartmentName());
+            jdbc.update(INSERT_EMPLOYEE, params);
+            for(String role: employee.getRoles()) {
+                Map<String, Object> roleParams = new HashMap<>();
+                roleParams.put("nif", employee.getNif());
+                roleParams.put("role", role);
+                jdbc.update(INSERT_ROLE, roleParams);
+            }
+            return true;
+        } catch (DuplicateKeyException e) {
+            return false;
         }
     }
 }
